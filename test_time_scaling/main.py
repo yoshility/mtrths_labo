@@ -62,8 +62,9 @@ def main():
         "answer": _gt,
         "is_correct": is_correct
     }
-    with open(f"/data/yoshie/mtrths_labo/output_maxmaxprm_llama3_gsm8k.jsonl", "a", encoding="utf-8") as f:
+    with open(f"/data/yoshie/mtrths_labo/output_maxmaxprm_llama3_gsm8k_ver2.jsonl", "a", encoding="utf-8") as f:
         f.write(json.dumps(result, ensure_ascii=False) + "\n")
+    # print(json.dumps(result, ensure_ascii=False) + "\n")
 
 if __name__ == '__main__':
     main()

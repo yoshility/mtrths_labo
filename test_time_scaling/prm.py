@@ -29,6 +29,7 @@ model = AutoModel.from_pretrained( # transformers>=4.40.0 required
     device_map=device, 
     torch_dtype=torch.bfloat16,
     trust_remote_code=True,
+    offload_buffers=True
 ).eval()
 
 def prm(step):
