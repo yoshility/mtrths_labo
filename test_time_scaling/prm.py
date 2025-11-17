@@ -32,7 +32,7 @@ model = AutoModel.from_pretrained( # transformers>=4.40.0 required
     offload_buffers=True
 ).eval()
 
-def prm(step):
+def prm(step, return_all=False):
     assert len(step) == 3
 
     # 答えが\n\nで終わるときとEOS(空)で終わるときがあるので
@@ -62,8 +62,11 @@ def prm(step):
     token_masks = (input_ids == step_sep_id)
     step_reward = make_step_rewards(outputs[0], token_masks)
     # step_reward: [[0.9921875, 0.2333984375, 0.6796875, 0.94140625]]
-    # return step_reward
-    return step_reward[0][-1]
+    
+    if return_all:
+        return step_reward[0]
+    else:
+        return step_reward[0][-1]
 
 '''
 問題点：

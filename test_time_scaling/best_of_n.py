@@ -1,10 +1,10 @@
-# Do max-max on GSM8K dataset
-
 import json
+from tqdm import tqdm
 from datasets import load_dataset
 import argparse
 
 from max_max import answer_question
+from prm import prm
 
 def get_answer(answer):
     i = -1
@@ -31,40 +31,45 @@ def check_is_correct(gt, pred):
 
     return int(new_gt in new_pred or gt in new_pred)
 
-def main():
+def main(index):
+    N = 3
+
     data = load_dataset("openai/gsm8k", "main", split="train")
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--index', type=int)
-    args = parser.parse_args()
-
     # generate answer
-    prompt = data[args.index]["question"]
+    prompt = data[index]["question"]
     messages = [
         {"role": "system", "content": "You are a helpful assistant solving math problems."},
         {"role": "user", "content": prompt}
     ]
-    answer = answer_question(messages, return_all=False)
+    final_answer = None
+    max_aggregated_score = 0
+    for i in range(N):
+        # full answer
+        answer_all = answer_question(messages, return_all=True)
+        # aggregate prm scores -> min
+        aggregated_score = min(prm(answer, return_all=True))
+        if aggregated_score > max_aggregated_score:
+            final_answer = answer_all
 
     # ground truth
-    _gt = data[args.index]["answer"]
+    _gt = data[index]["answer"]
     gt = get_answer(_gt)
 
     # check the answer
-    is_correct = check_is_correct(gt, answer)
+    is_correct = check_is_correct(gt, final_answer[2]["content"])
 
     # save model outputs to file
     result = {
-        "index": args.index,
+        "index": index,
         "question": prompt,
-        "pred": answer,
+        "pred": final_answer[2]["content"],
         "answer": _gt,
         "is_correct": is_correct
     }
-    with open(f"/data/yoshie/mtrths_labo/output_maxmaxprm_llama3_gsm8k_ver2.jsonl", "a", encoding="utf-8") as f:
+    with open(f"/data/yoshie/mtrths_labo/output_bon_llama3_gsm8k.jsonl", "a", encoding="utf-8") as f:
         f.write(json.dumps(result, ensure_ascii=False) + "\n")
-    # print(json.dumps(result, ensure_ascii=False) + "\n")
 
 if __name__ == '__main__':
-    main()
-
+    for index in tqdm(range(2)):
+        main(index=index)

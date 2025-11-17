@@ -1,6 +1,6 @@
 #!/bin/bash
 
-indices=({1..500})
+indices=({0..500})
 
 for i in "${indices[@]}"; do
     echo "Running: python main.py --index $i"

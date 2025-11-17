@@ -96,7 +96,7 @@ def generate_one_step(step):
     return next_step, generated_ids
 
 def static_value(step) -> float:
-    step_reward = prm(step)
+    step_reward = prm(step, return_all=False)
     return step_reward
 
 # min-max -> max-max
@@ -130,7 +130,7 @@ def max_max(step: list, child_id: int, depth: int, child_num: int):
     return max_score, children[max_index], tokenized_children[max_index]
 
 # 繰り返し次のステップを決めながら回答を生成していく
-def answer_question(messages):
+def answer_question(messages, return_all=False):
     # 現在のステップ数
     num_step = 0
 
@@ -139,12 +139,12 @@ def answer_question(messages):
     # 生成が終わるまでmax-maxを繰り返す
     while True:
         num_step += 1
-        print(f"\n<<num_step: {num_step}>>\n")
+        # print(f"\n<<num_step: {num_step}>>\n")
         _, next_step, tokenized_next_step = max_max(
             step=now_step,
             child_id=f"{num_step}-C", # for debug, assign an id to each node
             depth=1,
-            child_num=1
+            child_num=3
         )
         now_step = next_step
         # print(f"\nchosen_next_step:\n{next_step}\n")
@@ -156,7 +156,10 @@ def answer_question(messages):
             break
         # input('Press Enter to continue ↲')
     
-    return now_step[2]["content"]
+    if return_all:
+        return now_step
+    else:
+        return now_step[2]["content"]
 
 if __name__ == '__main__':
     # 初期化
@@ -167,5 +170,5 @@ if __name__ == '__main__':
         {"role": "system", "content": "You are a helpful assistant solving math problems."},
         {"role": "user", "content": prompt}
     ]
-    answer = answer_question(messages)
+    answer = answer_question(messages, return_all=False)
     print(f"\nfinal answer:\n{answer}\n")    
