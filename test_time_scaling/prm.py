@@ -3,21 +3,19 @@ from transformers import AutoModel, AutoTokenizer
 import torch.nn.functional as F
 
 class PRM:
-    model_name = "Qwen/Qwen2.5-Math-7B-PRM800K"
-    device = "auto"
-
     def __init__(self):
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+        self.model_name = "Qwen/Qwen2.5-Math-7B-PRM800K"
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, trust_remote_code=True)
         self.model = AutoModel.from_pretrained( # transformers>=4.40.0 required
-            model_name, 
-            device_map=device, 
+            self.model_name, 
+            device_map="cuda", 
             torch_dtype=torch.bfloat16,
             trust_remote_code=True,
             offload_buffers=True
         ).eval()
 
     def release_memory(self):
-        del self.tokenizer self.model
+        del self.tokenizer, self.model
 
     def make_step_rewards(self, logits, token_masks):
         # print(f"\nlogits:\n{logits}\n")
@@ -57,13 +55,13 @@ class PRM:
         input_ids = self.tokenizer.encode(
             conversation_str, 
             return_tensors="pt", 
-        ).to(model.device)
+        ).to(self.model.device)
 
         outputs = self.model(input_ids=input_ids, use_cache=False)
 
         step_sep_id = self.tokenizer.encode("<extra_0>")[0]
         token_masks = (input_ids == step_sep_id)
-        step_reward = make_step_rewards(outputs[0], token_masks)
+        step_reward = self.make_step_rewards(outputs[0], token_masks)
         # step_reward: [[0.9921875, 0.2333984375, 0.6796875, 0.94140625]]
         
         if return_all:

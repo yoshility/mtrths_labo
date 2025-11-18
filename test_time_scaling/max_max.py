@@ -6,14 +6,13 @@ from prm import PRM
 
 # model and tokenizer
 class Llama3:
-    model_id = "meta-llama/Meta-Llama-3.1-8B-Instruct"
-
     def __init__(self):
-        self.tokenizer = AutoTokenizer.from_pretrained(model_id)
+        self.model_id = "meta-llama/Meta-Llama-3.1-8B-Instruct"
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
         self.model = AutoModelForCausalLM.from_pretrained(
-            model_id,
+            self.model_id,
             torch_dtype=torch.float16,
-            device_map="auto",
+            device_map="cuda", # if auto, offload to cpu -> slow
             offload_buffers=True
         )
         self.model.eval()
@@ -39,7 +38,7 @@ class Llama3:
             add_generation_prompt=(len(step)==2)
         )
         # print(f"\ninput_text:\n{[input_text]}\n")
-        input_tokens = self.tokenizer(input_text, return_tensors="pt").to(model.device)
+        input_tokens = self.tokenizer(input_text, return_tensors="pt").to(self.model.device)
         generated_ids = input_tokens["input_ids"]
         # print(f"\ninput_ids(before):\n{generated_ids}\n")
         # If the last token is '<|eot_id|>'(128009), change it to ' \n\n'(4815)
@@ -68,7 +67,7 @@ class Llama3:
                 
                 # choose the next token
                 adjusted_logits = logits[:, -1, :] / temperature
-                topk_logits = top_k_logits(adjusted_logits, k=20)
+                topk_logits = self.top_k_logits(adjusted_logits, k=20)
                 probs = torch.softmax(topk_logits, dim=-1)
                 next_token_id = torch.multinomial(probs, num_samples=1) # random sampling based on probs
                 
@@ -103,6 +102,7 @@ class Llama3:
         return next_step, generated_ids
 
 def static_value(step) -> float:
+    print(f"\n[Loading PRM ...]\n")
     prm = PRM()
     print(f"\n[PRM loaded]\n")
     step_reward = prm.prm(step, return_all=False)
@@ -120,6 +120,7 @@ def max_max(step: list, child_id: int, depth: int, child_num: int):
     # 子ノード生成
     children = []
     tokenized_children = []
+    print(f"\n[Loading llm ...]\n")
     llm = Llama3()
     print(f"\n[llm loaded]\n")
     for i in range(child_num):
@@ -166,10 +167,11 @@ def answer_question(messages, return_all=False):
         if num_step >= 20:
             return now_step[2]["content"] + "(too long, stop generation)"
         # もし選んだ次ステップでEOSなら、生成終了
-        if tokenized_next_step[0][-1] == tokenizer.eos_token_id:
+        # if tokenized_next_step[0][-1] == llm.tokenizer.eos_token_id:
+        if tokenized_next_step[0][-1] == 128009:
             print(f"\n生成すべて完了\n")
             break
-        input('Press Enter to continue ↲')
+        # input('Press Enter to continue ↲')
     
     if return_all:
         return now_step
