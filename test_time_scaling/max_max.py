@@ -19,7 +19,7 @@ class Llama3:
         self.model.eval()
 
     def release_memory(self):
-        del self.tokenizer self.model
+        del self.tokenizer, self.model
 
     def top_k_logits(self, logits, k):
         v, ix = torch.topk(logits, k)
