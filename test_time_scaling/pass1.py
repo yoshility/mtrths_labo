@@ -4,6 +4,8 @@ from tqdm import tqdm
 from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
+from utils import get_answer, check_is_correct
+
 class Llama3:
     def __init__(self):
         # model and tokenizer
@@ -41,34 +43,48 @@ class Llama3:
             
             return decoded_text
 
-def check_is_correct(gt, answer):
-    answer_splited = answer.split("\n")
-    # print(f"answer_splited:\n{answer_splited}")
-    return int(gt in answer_splited[-1])
+'''for AIME25'''
+# def check_is_correct(gt, answer):
+#     answer_splited = answer.split("\n")
+#     # print(f"answer_splited:\n{answer_splited}")
+#     return int(gt in answer_splited[-1])
+
+NUM_SAMPLE = 8
 
 if __name__ == '__main__':
-    model = Llama3()
-    data = load_dataset("MathArena/aime_2025", split="train")
-    for i in tqdm(range(len(data))):
-        prompt = data[i]["problem"]
+    llm = Llama3()
+    # data = load_dataset("MathArena/aime_2025", split="train")
+    data = load_dataset("openai/gsm8k", "main", split="train")
+    
+    for i in tqdm(range(100)):
+        prompt = data[i]["question"]
 
-        # model output
-        answer = model.infer(prompt)
-        answer = model.infer(prompt, temperature=0.7)
-        
+        # generate answers
+        answers = []
+        for _ in range(NUM_SAMPLE):
+            answer = llm.infer(prompt)
+            answers.append(answer)
+
         # ground truth
-        gt = str(data[i]["answer"])
+        _gt = data[i]["answer"]
+        gt = get_answer(_gt)
+
+        # check if there is any correct answer
+        judge = []
+        for j in range(NUM_SAMPLE):
+            judge.append(check_is_correct(gt, answers[j]))
 
         # check the answer
-        is_correct = check_is_correct(gt, answer)
+        is_correct = int(any(judge))
+        final_answer = answers[judge.index(True)]
 
         # save model outputs to file
         result = {
-            "index": data[i]["problem_idx"],
+            "index": i,
             "question": prompt,
-            "pred": answer,
-            "answer": gt,
+            "pred": final_answer,
+            "answer": _gt,
             "is_correct": is_correct
         }
-        with open(f"/data/yoshie/mtrths_labo/output_pass@1_llama3_aime2025.jsonl", "a", encoding="utf-8") as f:
+        with open(f"/data/yoshie/mtrths_labo/output_pass1_llama3_gsm8k.jsonl", "a", encoding="utf-8") as f:
             f.write(json.dumps(result, ensure_ascii=False) + "\n")

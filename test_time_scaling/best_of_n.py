@@ -1,50 +1,25 @@
 import json
 from tqdm import tqdm
 from datasets import load_dataset
-import argparse
 
 from pass1 import Llama3
 from prm import PRM
+from utils import get_answer, check_is_correct
 
-def get_answer(answer):
-    i = -1
-    ans = ""
-    while (answer[i] != ' '):
-        ans = answer[i] + ans
-        i -= 1
-    return ans
-
-def check_is_correct(gt, pred):
-    # put ',' in gt (e.g. 488000 -> 488,000)
-    i = len(gt)-1
-    cnt = 0
-    new_gt = ""
-    while i >= 0:
-        if cnt != 0 and cnt % 3 == 0:
-            new_gt = ',' + new_gt
-        new_gt = gt[i] + new_gt
-        cnt += 1
-        i -= 1
-    
-    # get final sentence from answer
-    new_pred = pred.split('\n\n')[-1]
-
-    return int(new_gt in new_pred or gt in new_pred)
-
+NUM_SAMPLE = 8
 
 if __name__ == '__main__':
     data = load_dataset("openai/gsm8k", "main", split="train")
     # なんか急にデータ数が7473に増えた
 
-    for i in tqdm(range(4, 100)):
+    for i in tqdm(range(100)):
         prompt = data[i]["question"]
 
         # generate answer
         final_answer = None # the best answer
         final_answer_scores = None # stepwise prm scores of the final answer
         max_aggregated_score = 0
-        N = 3
-        for _ in range(N):
+        for _ in range(NUM_SAMPLE):
             # answer
             llm = Llama3()
             answer = llm.infer(prompt) # only new output
@@ -57,7 +32,7 @@ if __name__ == '__main__':
             # aggregate prm scores -> min
             prm = PRM()
             scores = prm.prm(answer_chat_template, return_all=True)
-            aggregated_score = min(scores)
+            aggregated_score = scores[-1] # BoN_Last
             prm.release_memory()
             if aggregated_score > max_aggregated_score:
                 max_aggregated_score = aggregated_score
@@ -80,5 +55,5 @@ if __name__ == '__main__':
             "answer": _gt,
             "is_correct": is_correct
         }
-        with open(f"/data/yoshie/mtrths_labo/output_BoN_llama3_gsm8k.jsonl", "a", encoding="utf-8") as f:
+        with open(f"/data/yoshie/mtrths_labo/output_BoNlast_llama3_gsm8k.jsonl", "a", encoding="utf-8") as f:
             f.write(json.dumps(result, ensure_ascii=False) + "\n")

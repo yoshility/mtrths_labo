@@ -5,34 +5,10 @@ from datasets import load_dataset
 
 from max_max import Llama3
 from prm import PRM
+from utils import get_answer, check_is_correct
 
 NUM_SAMPLE = 6
 BEAM_SIZE = 4
-
-def get_answer(answer):
-    i = -1
-    ans = ""
-    while (answer[i] != ' '):
-        ans = answer[i] + ans
-        i -= 1
-    return ans
-
-def check_is_correct(gt, pred):
-    # put ',' in gt (e.g. 488000 -> 488,000)
-    i = len(gt)-1
-    cnt = 0
-    new_gt = ""
-    while i >= 0:
-        if cnt != 0 and cnt % 3 == 0:
-            new_gt = ',' + new_gt
-        new_gt = gt[i] + new_gt
-        cnt += 1
-        i -= 1
-    
-    # get final sentence from answer
-    new_pred = pred.split('\n\n')[-1]
-
-    return int(new_gt in new_pred or gt in new_pred)
 
 def beam_search(now_steps: list, num_sample: int, beam_size=4):
     # Generate <num_sampling> steps
@@ -98,7 +74,7 @@ def answer_question(messages):
 if __name__ == '__main__':
     data = load_dataset("openai/gsm8k", "main", split="train")
 
-    for i in tqdm(range(100)):
+    for i in tqdm(range(1)):
         # generate answer
         prompt = data[i]["question"]
         messages = [
@@ -112,7 +88,7 @@ if __name__ == '__main__':
         gt = get_answer(_gt)
 
         # check the answer
-        is_correct = check_is_correct(gt, final_answer)
+        is_correct = check_is_correct(gt, final_answer[2]["content"])
 
         # save model outputs to file
         result = {
