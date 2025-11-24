@@ -27,9 +27,3 @@ print(completion.choices[0].message)
 
 print(completion.choices[0].message.content)
 # Hello! How can I assist you today? 😊
-
-# Calculate point-biserial correlation
-'''
-r = (m1 - m0)\sqrt(p(1-p)) / s_x
-'''
-rpb_list = []
