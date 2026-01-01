@@ -7,6 +7,7 @@ from prm import PRM
 # model and tokenizer
 class Llama3:
     def __init__(self):
+        print("Loading Llama3")
         self.model_id = "meta-llama/Meta-Llama-3.1-8B-Instruct"
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
         self.model = AutoModelForCausalLM.from_pretrained(
@@ -18,6 +19,7 @@ class Llama3:
         self.model.eval()
 
     def release_memory(self):
+        print("Release Llama3")
         del self.tokenizer, self.model
 
     def top_k_logits(self, logits, k):
@@ -101,6 +103,7 @@ class Llama3:
             next_step[2]["content"] += generated_text
         return next_step, generated_ids
 
+# deprecated
 def static_value(step) -> float:
     print(f"\n[Loading PRM ...]\n")
     prm = PRM()
@@ -110,6 +113,7 @@ def static_value(step) -> float:
     print(f"\n[PRM memory released]\n")
     return step_reward
 
+# deprecated
 # min-max -> max-max
 def max_max(step: list, child_id: int, depth: int, child_num: int):
     # print(f"\n[Start max-max (depth={depth})]\n")

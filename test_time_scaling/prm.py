@@ -4,6 +4,7 @@ import torch.nn.functional as F
 
 class PRM:
     def __init__(self):
+        print("Loading PRM (Qwen800)")
         self.model_name = "Qwen/Qwen2.5-Math-7B-PRM800K"
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, trust_remote_code=True)
         self.model = AutoModel.from_pretrained( # transformers>=4.40.0 required
@@ -15,6 +16,7 @@ class PRM:
         ).eval()
 
     def release_memory(self):
+        print("Release PRM (Qwen800)")
         del self.tokenizer, self.model
 
     def make_step_rewards(self, logits, token_masks):
