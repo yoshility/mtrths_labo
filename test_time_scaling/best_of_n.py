@@ -2,8 +2,8 @@ import json
 from tqdm import tqdm
 from datasets import load_dataset
 
-from pass1 import Llama3
 from prm import PRM
+from models_default import Llama3
 from utils import get_answer, check_is_correct
 
 NUM_SAMPLE = 8

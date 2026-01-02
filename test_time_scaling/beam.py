@@ -58,7 +58,7 @@ def answer_question(index, messages):
         for i in range(len(next_steps)):
             if tokenized_next_steps[i]["step"][0][-1] == 128009: # <eot_id>
                 completed_steps.append(next_steps[i])
-            elif num_step >= 20: # If too long, treat as completed and stop later (じゃないとcompleted_stepsが空になってしまう)
+            elif num_step >= 30: # If too long, treat as completed and stop later (じゃないとcompleted_stepsが空になってしまう)
                 completed_steps.append(next_steps[i])
             else:
                 now_steps.append(next_steps[i]["step"])
@@ -66,7 +66,7 @@ def answer_question(index, messages):
         if len(now_steps)==0:
             break
         
-        if num_step >= 20: # If too long, stop generation
+        if num_step >= 30: # If too long, stop generation
             break
 
         print(f"Question index: {index}") # 現在の問題番号
@@ -109,7 +109,7 @@ if __name__ == '__main__':
         result = {
             "index": i,
             "question": prompt,
-            "pred": final_answer,
+            "pred": final_answer[2]["content"],
             "answer": _gt,
             "is_correct": is_correct
         }
