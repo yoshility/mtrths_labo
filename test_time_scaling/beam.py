@@ -3,7 +3,7 @@ import json
 from tqdm import tqdm
 from datasets import load_dataset
 
-from max_max import Llama3
+from models_step import Llama3
 from prm import PRM
 from utils import get_answer, check_is_correct
 
@@ -14,7 +14,7 @@ def beam_search(now_steps: list, num_sample: int, beam_size=4):
     # Generate <NUM_SAMPLE> steps
     children = [] # 4 * 6 samples basically
     tokenized_children = []
-    llm = Llama3()
+    llm = Llama3() # TODO
     for i in tqdm(range(len(now_steps)), desc="Generate next steps"):
         for _ in range(num_sample):
             next_step, tokenized_next_step = llm.generate_one_step(now_steps[i])
@@ -23,7 +23,7 @@ def beam_search(now_steps: list, num_sample: int, beam_size=4):
     llm.release_memory()
 
     # Assign PRM score
-    prm = PRM()
+    prm = PRM() # TODO
     for i in tqdm(range(len(children)), desc="Assign PRM scores"):
         score = prm.prm(children[i], return_all=False)
         children[i] = {"step": children[i], "score": score}
@@ -80,26 +80,27 @@ def answer_question(index, messages):
 
 if __name__ == '__main__':
     # TODO
-    dataset_name = 'aime25' # ['gsm8k', 'aime25']
+    dataset_name = 'amc23' # ['gsm8k', 'aime25', 'amc23]
 
     # TODO
     # data = load_dataset("openai/gsm8k", "main", split="train")
-    data = load_dataset("MathArena/aime_2025", split="train")
+    # data = load_dataset("MathArena/aime_2025", split="train")
+    data = load_dataset("math-ai/amc23", split="test")
 
-    for i in tqdm(range(30)): # TODO
+    for i in tqdm(range(1, 40)): # TODO
         # generate answer
         print(f"Question index: {i}\n-----------------------")
         # TODO
-        # prompt = data[i]["question"] # gsm8k
-        prompt = data[i]["problem"] # aime25
+        prompt = data[i]["question"] # gsm8k, amc23
+        # prompt = data[i]["problem"] # aime25
         messages = [
             {"role": "system", "content": "You are a helpful assistant solving math problems."},
             {"role": "user", "content": prompt}
         ]
         final_answer = answer_question(i, messages)
         
-        # ground truth
-        _gt = data[i]["answer"]
+        # ground truth TODO
+        _gt = data[i]["answer"] # gsm8k, amc23
         gt = get_answer(dataset_name, _gt)
 
         # check the answer
@@ -113,5 +114,5 @@ if __name__ == '__main__':
             "answer": _gt,
             "is_correct": is_correct
         }
-        with open(f"/data/yoshie/mtrths_labo/output_beam_llama3_aime25.jsonl", "a", encoding="utf-8") as f:
+        with open(f"/data/yoshie/mtrths_labo/output_beam_llama3_amc23.jsonl", "a", encoding="utf-8") as f:
             f.write(json.dumps(result, ensure_ascii=False) + "\n")

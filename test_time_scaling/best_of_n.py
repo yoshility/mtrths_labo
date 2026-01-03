@@ -6,15 +6,19 @@ from prm import PRM
 from models_default import Llama3
 from utils import get_answer, check_is_correct
 
+# TODO
+dataset_name = 'amc23' # ['gsm8k', 'aime25', 'math_qa', 'amc23']
+
 NUM_SAMPLE = 8
 
 if __name__ == '__main__':
-    data = load_dataset("openai/gsm8k", "main", split="train")
-    # なんか急にデータ数が7473に増えた
+    # TODO: dataset
+    # data = load_dataset("openai/gsm8k", "main", split="train")
+    data = load_dataset("math-ai/amc23", split="test")
 
-    for i in tqdm(range(4, 100)):
+    for i in tqdm(range(1, 40)): # TODO
         print(f"\nProcessing question No.{i} ...\n")
-        prompt = data[i]["question"]
+        prompt = data[i]["question"] # gsm8k, amc23
 
         # generate answer
         answer_candidates = []
@@ -31,12 +35,12 @@ if __name__ == '__main__':
             ]
             llm.release_memory()
 
-            # ground truth
-            _gt = data[i]["answer"]
-            gt = get_answer(_gt)
+            # ground truth TODO
+            _gt = data[i]["answer"] # gsm8k, amc23
+            gt = get_answer(dataset_name, _gt)
 
             # check the answer
-            is_correct = check_is_correct(gt, answer)
+            is_correct = check_is_correct(dataset_name, gt, answer)
 
             # aggregate prm scores -> last
             prm = PRM()
@@ -66,6 +70,6 @@ if __name__ == '__main__':
         answer_candidates[best_answer_index]["is_best"] = 1
         
         # save all the answers
-        with open(f"/data/yoshie/mtrths_labo/output_BoNlast_llama3_qwen800_gsm8k_allCandidates.jsonl", "a", encoding="utf-8") as f:
+        with open(f"/data/yoshie/mtrths_labo/output_BoNlast_llama3_qwen800_amc23.jsonl", "a", encoding="utf-8") as f:
             for j in range(NUM_SAMPLE):
                 f.write(json.dumps(answer_candidates[j], ensure_ascii=False) + "\n")

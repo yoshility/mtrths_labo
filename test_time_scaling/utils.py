@@ -18,6 +18,9 @@ def get_answer(dataset_name, answer):
         numbers = re.findall(r"-?\d+(?:\.\d+)?", options)
         return numbers[ord(correct)-ord('a')]
 
+    elif dataset_name == 'amc23':
+        return answer
+
 def check_is_correct(dataset_name, gt, pred):
     if dataset_name == 'gsm8k':
         # put ',' in gt (e.g. 488000 -> 488,000)
@@ -39,5 +42,9 @@ def check_is_correct(dataset_name, gt, pred):
         return int(gt in answer_splited[-1])
     
     elif dataset_name == 'math_qa':
+        answer_splited = pred.split('\n\n')
+        return int(gt in answer_splited[-1])
+    
+    elif dataset_name == 'amc23':
         answer_splited = pred.split('\n\n')
         return int(gt in answer_splited[-1])
