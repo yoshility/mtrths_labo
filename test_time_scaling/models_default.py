@@ -43,7 +43,7 @@ class Qwen:
         # model and tokenizer
         self.model_id = "Qwen/Qwen2.5-Math-7B-Instruct"
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
-        self.model = AutoModelForCausalLM.from_pretrained(self.model_id, torch_dtype=torch.float16, device_map="cuda")
+        self.model = AutoModelForCausalLM.from_pretrained(self.model_id, torch_dtype=torch.int8, device_map="cuda")
         self.model.eval()
     
     def release_memory(self):
@@ -63,8 +63,11 @@ class Qwen:
             input_tokens = self.tokenizer(input_text, return_tensors="pt").to("cuda")
             outputs = self.model.generate(
                 **input_tokens, # set attention_mask by this
-                # temperature=0.7, # random even if no temp
-                max_new_tokens=2048,
+                do_sample=True,
+                # temperature=0.8, # random even if no temp
+                top_p=0.9,
+                top_k=5, # ここ細かく調節しないとすぐハルシネーションする
+                max_new_tokens=512,
                 output_scores=True,
                 return_dict_in_generate=True,
                 pad_token_id=self.tokenizer.eos_token_id
@@ -72,5 +75,7 @@ class Qwen:
             input_len = input_tokens.input_ids.shape[-1]
             gen_sequences = outputs.sequences[:, input_len:].cpu()
             decoded_text = self.tokenizer.decode(gen_sequences[0], skip_special_tokens=True)
+
+            del outputs
             
             return decoded_text

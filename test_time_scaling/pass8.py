@@ -20,7 +20,7 @@ data = load_dataset("openai/gsm8k", "main", split="train")
 # data = load_dataset("allenai/math_qa", split="train", trust_remote_code=True)
 # data = load_dataset("math-ai/amc23", split="test")
 
-for i in tqdm(range(1, 100)): # TODO
+for i in tqdm(range(100)): # TODO
     # TODO
     prompt = data[i]["question"] # gsm8k, amc23
     # prompt = data[i]["problem"] # aime25
@@ -28,7 +28,7 @@ for i in tqdm(range(1, 100)): # TODO
 
     # generate answers
     answers = []
-    for _ in range(NUM_SAMPLE):
+    for _ in tqdm(range(NUM_SAMPLE)):
         answer = llm.infer(prompt)
         answers.append(answer)
 

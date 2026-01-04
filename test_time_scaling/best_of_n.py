@@ -16,7 +16,7 @@ if __name__ == '__main__':
     # data = load_dataset("openai/gsm8k", "main", split="train")
     data = load_dataset("math-ai/amc23", split="test")
 
-    for i in tqdm(range(1, 40)): # TODO
+    for i in tqdm(range(4, 40)): # TODO
         print(f"\nProcessing question No.{i} ...\n")
         prompt = data[i]["question"] # gsm8k, amc23
 
