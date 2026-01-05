@@ -47,5 +47,7 @@ for i in tqdm(range(2, 100)): # TODO
         "answer": _gt,
         "is_correct": is_correct
     }
-    with open(f"/data/yoshie/mtrths_labo/output_pass1_qwen_mmlu.jsonl", "a", encoding="utf-8") as f:
+    # output_file = "/data/yoshie/mtrths_labo/output_pass1_qwen_mmlu.jsonl"
+    output_file = "/content/output_pass1_qwen_mmlu.jsonl"
+    with open(output_file, "a", encoding="utf-8") as f:
         f.write(json.dumps(result, ensure_ascii=False) + "\n")
