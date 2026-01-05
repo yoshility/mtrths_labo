@@ -18,6 +18,7 @@ class PRM:
     def release_memory(self):
         print("Release PRM (Qwen800)")
         del self.tokenizer, self.model
+        torch.cuda.empty_cache()
 
     def make_step_rewards(self, logits, token_masks):
         # print(f"\nlogits:\n{logits}\n")
@@ -59,7 +60,13 @@ class PRM:
             return_tensors="pt", 
         ).to(self.model.device)
 
-        outputs = self.model(input_ids=input_ids, use_cache=False)
+        try:
+            outputs = self.model(input_ids=input_ids, use_cache=True)
+        except torch.OutOfMemoryError:
+            print("CUDA OOM caught!")
+        finally:
+            torch.cuda.empty_cache()
+            return None
 
         step_sep_id = self.tokenizer.encode("<extra_0>")[0]
         token_masks = (input_ids == step_sep_id)

@@ -22,12 +22,12 @@ if __name__ == '__main__':
 
         # generate answer
         answer_candidates = []
-        best_answer_index = None # the best answer index
+        best_answer_index = 0 # the best answer index
         max_aggregated_score = 0
         for j in tqdm(range(NUM_SAMPLE)):
             # answer
             llm = Llama3()
-            answer = llm.infer(prompt) # only new output
+            answer = llm.infer(prompt).cpu() # only new output
             answer_chat_template = [
                 {"role": "system", "content": "You are a helpful assistant solving math problems."},
                 {"role": "user", "content": prompt},
@@ -45,7 +45,10 @@ if __name__ == '__main__':
             # aggregate prm scores -> last
             prm = PRM()
             scores = prm.prm(answer_chat_template, return_all=True)
-            aggregated_score = scores[-1] # BoN_Last
+            if scores == None:
+                aggregated_score = 0 # CUDA OOM
+            else:
+                aggregated_score = scores[-1] # BoN_Last
             prm.release_memory()
 
             # best of N
