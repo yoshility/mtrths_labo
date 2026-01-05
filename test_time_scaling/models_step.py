@@ -18,6 +18,7 @@ class Llama3:
     def release_memory(self):
         print("Release Llama3")
         del self.tokenizer, self.model
+        torch.cuda.empty_cache()
 
     def top_k_logits(self, logits, k):
         v, ix = torch.topk(logits, k)
@@ -116,6 +117,7 @@ class Qwen:
     def release_memory(self):
         print("Release Qwen")
         del self.tokenizer, self.model
+        torch.cuda.empty_cache()
     
     def top_k_logits(self, logits, k):
         v, ix = torch.topk(logits, k)

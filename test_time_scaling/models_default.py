@@ -6,11 +6,12 @@ class Llama3:
         # model and tokenizer
         self.model_id = "meta-llama/Meta-Llama-3.1-8B-Instruct"
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
-        self.model = AutoModelForCausalLM.from_pretrained(self.model_id, torch_dtype=torch.float16, device_map="cuda")
+        self.model = AutoModelForCausalLM.from_pretrained(self.model_id, torch_dtype=torch.float16, device_map="auto") # cuda
         self.model.eval()
 
     def release_memory(self):
         del self.model, self.tokenizer
+        torch.cuda.empty_cache()
 
     def infer(self, prompt):
         with torch.no_grad():
@@ -48,6 +49,7 @@ class Qwen:
     
     def release_memory(self):
         del self.model, self.tokenizer
+        torch.cuda.empty_cache()
     
     def infer(self, prompt):
         with torch.no_grad():

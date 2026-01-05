@@ -12,7 +12,7 @@ def get_answer(dataset_name, answer):
     elif dataset_name == 'aime25':
         return str(answer)
 
-    elif dataset_name == 'math_qa':
+    elif dataset_name == 'mathqa':
         options = answer[0]
         correct = answer[1]
         numbers = re.findall(r"-?\d+(?:\.\d+)?", options)
@@ -20,6 +20,9 @@ def get_answer(dataset_name, answer):
 
     elif dataset_name == 'amc23':
         return answer
+    
+    elif dataset_name == 'mmlu':
+        return answer[0][answer[1]]
 
 def check_is_correct(dataset_name, gt, pred):
     if dataset_name == 'gsm8k':
@@ -41,10 +44,14 @@ def check_is_correct(dataset_name, gt, pred):
         answer_splited = pred.split('\n')
         return int(gt in answer_splited[-1])
     
-    elif dataset_name == 'math_qa':
+    elif dataset_name == 'mathqa':
         answer_splited = pred.split('\n\n')
         return int(gt in answer_splited[-1])
     
     elif dataset_name == 'amc23':
+        answer_splited = pred.split('\n\n')
+        return int(gt in answer_splited[-1])
+
+    elif dataset_name == 'mmlu':
         answer_splited = pred.split('\n\n')
         return int(gt in answer_splited[-1])
