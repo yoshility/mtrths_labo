@@ -22,7 +22,7 @@ data = [d for d in _data if d.get("subject") == "high_school_mathematics"] # ま
 
 for i in tqdm(range(2, 100)): # TODO
     # TODO
-    prompt = data[i]["question"] # gsm8k, amc23
+    # prompt = data[i]["question"] # gsm8k, amc23
     # prompt = data[i]["problem"] # aime25
     # prompt = "Please choose the correct answer of the following question from the options.\n# Question:\n" + data[i]["Problem"] + "\n# Options:\n" + data[i]["options"] # math_qa
     prompt = "Please choose the correct answer of the following question from the options.\n# Question:\n" + data[i]["question"] + "\n# Options:\n" + str(data[i]["choices"]) # mmlu

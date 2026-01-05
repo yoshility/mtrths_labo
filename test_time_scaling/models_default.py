@@ -6,7 +6,7 @@ class Llama3:
         # model and tokenizer
         self.model_id = "meta-llama/Meta-Llama-3.1-8B-Instruct"
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
-        self.model = AutoModelForCausalLM.from_pretrained(self.model_id, torch_dtype=torch.float16, device_map="auto") # cuda
+        self.model = AutoModelForCausalLM.from_pretrained(self.model_id, torch_dtype=torch.float16, device_map="cuda") # cuda
         self.model.eval()
 
     def release_memory(self):
@@ -28,7 +28,7 @@ class Llama3:
             outputs = self.model.generate(
                 **input_tokens, # set attention_mask by this
                 # temperature=0.7, # random even if no temp
-                max_new_tokens=2048,
+                max_new_tokens=1024,
                 output_scores=True,
                 return_dict_in_generate=True,
                 pad_token_id=self.tokenizer.eos_token_id
