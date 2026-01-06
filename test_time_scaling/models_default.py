@@ -45,7 +45,7 @@ class Qwen:
         # model and tokenizer
         self.model_id = "Qwen/Qwen2.5-Math-7B-Instruct"
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
-        self.model = AutoModelForCausalLM.from_pretrained(self.model_id, torch_dtype=torch.int8, device_map="cuda")
+        self.model = AutoModelForCausalLM.from_pretrained(self.model_id, torch_dtype=torch.float16, device_map="cuda")
         self.model.eval()
     
     def release_memory(self):
@@ -70,7 +70,7 @@ class Qwen:
                 # temperature=0.8, # random even if no temp
                 top_p=0.9,
                 top_k=5, # ここ細かく調節しないとすぐハルシネーションする
-                max_new_tokens=512,
+                max_new_tokens=1024,
                 output_scores=True,
                 return_dict_in_generate=True,
                 pad_token_id=self.tokenizer.eos_token_id
