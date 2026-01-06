@@ -146,4 +146,5 @@ class QwenPRM:
 問題点：
 - torch と transformers のバージョンが合わなくてエラー起きてしまう
 - model() に use_cache=False を付け加えたら動いた（応急処置）
+- use_cache=Trueでも動く？
 '''
