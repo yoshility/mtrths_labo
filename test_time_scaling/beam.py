@@ -1,34 +1,64 @@
 # max_maxとほぼ同じことする
 import json
+import argparse
 from tqdm import tqdm
 from datasets import load_dataset
 
-from models_step import Llama3
-from prm import PRM
+from models_step import Llama3, Qwen
+from prm import PRM, QwenPRM
 from utils import get_answer, check_is_correct
 
 NUM_SAMPLE = 6
 BEAM_SIZE = 4
 
+# parse args
+parser = argparse.ArgumentParser()
+parser.add_argument('--llm') # ['llama', 'qwen']
+parser.add_argument('--prm') # ['qwen800', 'qwenPRM']
+parser.add_argument('--data') # ['gsm8k', 'mmlu']
+parser.add_argument('--start', type=int)
+parser.add_argument('--end', type=int)
+args = parser.parse_args()
+
+# LLM
+if args.llm == 'llama':
+    llm = Llama3()
+elif args.llm == 'qwen':
+    llm = Qwen()
+
+# PRM
+if args.prm == 'qwen800':
+    prm = PRM()
+    # prm = Qwen800()
+elif args.prm == 'qwenPRM':
+    prm = QwenPRM()
+
 def beam_search(now_steps: list, num_sample: int, beam_size=4):
     # Generate <NUM_SAMPLE> steps
     children = [] # 4 * 6 samples basically
     tokenized_children = []
-    llm = Llama3() # TODO
+
+    # # LLM
+    # if args.llm == 'llama':
+    #     llm = Llama3()
+    # elif args.llm == 'qwen':
+    #     llm = Qwen()
+
+    # llm = Llama3()
     for i in tqdm(range(len(now_steps)), desc="Generate next steps"):
         for _ in range(num_sample):
             next_step, tokenized_next_step = llm.generate_one_step(now_steps[i])
             children.append(next_step)
             tokenized_children.append(tokenized_next_step)
-    llm.release_memory()
+    # llm.release_memory()
 
     # Assign PRM score
-    prm = PRM() # TODO
+    # prm = PRM()
     for i in tqdm(range(len(children)), desc="Assign PRM scores"):
         score = prm.prm(children[i], return_all=False)
         children[i] = {"step": children[i], "score": score}
         tokenized_children[i] = {"step": tokenized_children[i], "score": score}
-    prm.release_memory()
+    # prm.release_memory()
 
     # Find the best <beam_size> children
     best_children = sorted(children, key=lambda x: x["score"], reverse=True)[:beam_size]
@@ -79,28 +109,35 @@ def answer_question(index, messages):
     return final_answer["step"]
 
 if __name__ == '__main__':
-    # TODO
-    dataset_name = 'amc23' # ['gsm8k', 'aime25', 'amc23]
 
-    # TODO
-    # data = load_dataset("openai/gsm8k", "main", split="train")
-    # data = load_dataset("MathArena/aime_2025", split="train")
-    data = load_dataset("math-ai/amc23", split="test")
+    # dataset
+    if args.data == 'gsm8k':
+        data = load_dataset("openai/gsm8k", "main", split="train")
+        dataset_name = 'gsm8k'
+    elif args.data == 'mmlu':
+        _data = load_dataset("TIGER-Lab/MMLU-STEM", split="test")
+        data = [d for d in _data if d.get("subject") == "high_school_mathematics"]
+        dataset_name = 'mmlu'
 
-    for i in tqdm(range(1, 40)): # TODO
+    for i in tqdm(range(args.start, args.end)):
         # generate answer
         print(f"Question index: {i}\n-----------------------")
-        # TODO
-        prompt = data[i]["question"] # gsm8k, amc23
-        # prompt = data[i]["problem"] # aime25
+        if args.data == 'gsm8k':
+            prompt = data[i]["question"] # gsm8k
+        elif args.data == 'mmlu':
+            prompt = "Please choose the correct answer of the following question from the options.\n# Question:\n" + data[i]["question"] + "\n# Options:\n" + str(data[i]["choices"]) # mmlu
+
         messages = [
-            {"role": "system", "content": "You are a helpful assistant solving math problems."},
+            {"role": "system", "content": "You are a helpful assistant solving math problems. Solve the problem step by step. Separate the steps with '\\n\\n' to make it readable."},
             {"role": "user", "content": prompt}
         ]
         final_answer = answer_question(i, messages)
         
-        # ground truth TODO
-        _gt = data[i]["answer"] # gsm8k, amc23
+        # ground truth
+        if args.data == 'gsm8k':
+            _gt = data[i]["answer"] # gsm8k
+        elif args.data == 'mmlu':
+            _gt = [data[i]["choices"], data[i]["answer"]] # mmlu
         gt = get_answer(dataset_name, _gt)
 
         # check the answer
@@ -114,5 +151,5 @@ if __name__ == '__main__':
             "answer": _gt,
             "is_correct": is_correct
         }
-        with open(f"/data/yoshie/mtrths_labo/output_beam_llama3_amc23.jsonl", "a", encoding="utf-8") as f:
+        with open(f"/data/yoshie/mtrths_labo/output_beam_{args.llm}_{args.prm}_{args.data}.jsonl", "a", encoding="utf-8") as f:
             f.write(json.dumps(result, ensure_ascii=False) + "\n")

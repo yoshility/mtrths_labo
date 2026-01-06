@@ -11,8 +11,8 @@ dataset_name = 'mmlu' # ['gsm8k', 'aime25', 'mathqa', 'amc23', 'mmlu']
 NUM_SAMPLE = 8
 
 # TODO
-llm = Llama3()
-# llm = Qwen()
+# llm = Llama3()
+llm = Qwen()
 
 # TODO: dataset
 # data = load_dataset("openai/gsm8k", "main", split="train")
@@ -22,7 +22,7 @@ llm = Llama3()
 _data = load_dataset("TIGER-Lab/MMLU-STEM", split="test")
 data = [d for d in _data if d.get("subject") == "high_school_mathematics"] # まずは高校数学から試してみる
 
-for i in tqdm(range(11, 100)): # TODO
+for i in tqdm(range(2, 100)): # TODO
     # TODO
     # prompt = data[i]["question"] # gsm8k, amc23
     # prompt = data[i]["problem"] # aime25
@@ -58,5 +58,5 @@ for i in tqdm(range(11, 100)): # TODO
         "answer": _gt,
         "is_correct": is_correct
     }
-    with open(f"/data/yoshie/mtrths_labo/output_pass8_llama3_mmlu.jsonl", "a", encoding="utf-8") as f:
+    with open("/data/yoshie/mtrths_labo/output_pass8_qwen_mmlu.jsonl", "a", encoding="utf-8") as f:
         f.write(json.dumps(result, ensure_ascii=False) + "\n")

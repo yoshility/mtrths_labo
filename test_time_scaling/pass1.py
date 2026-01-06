@@ -9,8 +9,8 @@ from utils import get_answer, check_is_correct
 dataset_name = 'mmlu' # ['gsm8k', 'aime25', 'mathqa', 'amc23', 'mmlu']
 
 # TODO
-llm = Llama3()
-# llm = Qwen()
+# llm = Llama3()
+llm = Qwen()
 
 # TODO: dataset
 # data = load_dataset("openai/gsm8k", "main", split="train")
@@ -47,7 +47,6 @@ for i in tqdm(range(2, 100)): # TODO
         "answer": _gt,
         "is_correct": is_correct
     }
-    # output_file = "/data/yoshie/mtrths_labo/output_pass1_qwen_mmlu.jsonl"
-    output_file = "/content/output_pass1_qwen_mmlu.jsonl"
+    output_file = "/data/yoshie/mtrths_labo/output_pass1_qwen_mmlu.jsonl"
     with open(output_file, "a", encoding="utf-8") as f:
         f.write(json.dumps(result, ensure_ascii=False) + "\n")
