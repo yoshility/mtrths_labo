@@ -34,7 +34,7 @@ if __name__ == '__main__':
         for j in tqdm(range(NUM_SAMPLE)):
             # answer
             # llm = Llama3()
-            answer = llm.infer(prompt).cpu() # only new output
+            answer = llm.infer(prompt) # only new output
             answer_chat_template = [
                 {"role": "system", "content": "You are a helpful assistant solving math problems."},
                 {"role": "user", "content": prompt},
@@ -53,10 +53,7 @@ if __name__ == '__main__':
             # aggregate prm scores -> last
             # prm = PRM()
             scores = prm.prm(answer_chat_template, return_all=True)
-            if scores == None:
-                aggregated_score = 0 # CUDA OOM
-            else:
-                aggregated_score = scores[-1] # BoN_Last
+            aggregated_score = scores[-1] # BoN_Last
             # prm.release_memory()
 
             # best of N
@@ -81,8 +78,7 @@ if __name__ == '__main__':
         answer_candidates[best_answer_index]["is_best"] = 1
         
         # save all the answers
-        # output_file = "/data/yoshie/mtrths_labo/output_BoNlast_llama3_qwen800_amc23.jsonl"
-        output_file = "/content/output_BoNlast_llama3_qwen800_mmlu.jsonl"
+        output_file = "/data/yoshie/mtrths_labo/output_BoNlast_llama3_qwen800_mmlu.jsonl"
         with open(output_file, "a", encoding="utf-8") as f:
             for j in range(NUM_SAMPLE):
                 f.write(json.dumps(answer_candidates[j], ensure_ascii=False) + "\n")

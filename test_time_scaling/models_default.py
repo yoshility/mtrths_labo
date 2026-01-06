@@ -4,6 +4,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 class Llama3:
     def __init__(self):
         # model and tokenizer
+        print("Loading LLM (Llama3)")
         self.model_id = "meta-llama/Meta-Llama-3.1-8B-Instruct"
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
         self.model = AutoModelForCausalLM.from_pretrained(self.model_id, torch_dtype=torch.float16, device_map="cuda") # cuda

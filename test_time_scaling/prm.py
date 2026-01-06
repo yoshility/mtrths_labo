@@ -60,13 +60,7 @@ class PRM:
             return_tensors="pt", 
         ).to(self.model.device)
 
-        try:
-            outputs = self.model(input_ids=input_ids, use_cache=True)
-        except torch.OutOfMemoryError:
-            print("CUDA OOM caught!")
-        finally:
-            torch.cuda.empty_cache()
-            return None
+        outputs = self.model(input_ids=input_ids, use_cache=True)
 
         step_sep_id = self.tokenizer.encode("<extra_0>")[0]
         token_masks = (input_ids == step_sep_id)
@@ -82,4 +76,5 @@ class PRM:
 問題点：
 - torch と transformers のバージョンが合わなくてエラー起きてしまう
 - model() に use_cache=False を付け加えたら動いた（応急処置）
+- use_cache=Trueでも動く？
 '''
