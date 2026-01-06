@@ -2,7 +2,7 @@ import torch
 from transformers import AutoModel, AutoTokenizer
 import torch.nn.functional as F
 
-class PRM: # -> Qwen800
+class Qwen800:
     def __init__(self):
         print("Loading PRM (Qwen800)")
         self.model_name = "Qwen/Qwen2.5-Math-7B-PRM800K"

@@ -22,7 +22,7 @@ llm = Qwen()
 _data = load_dataset("TIGER-Lab/MMLU-STEM", split="test")
 data = [d for d in _data if d.get("subject") == "high_school_mathematics"] # まずは高校数学から試してみる
 
-for i in tqdm(range(2, 100)): # TODO
+for i in tqdm(range(77, 100)): # TODO
     # TODO
     # prompt = data[i]["question"] # gsm8k, amc23
     # prompt = data[i]["problem"] # aime25

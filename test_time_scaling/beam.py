@@ -5,11 +5,14 @@ from tqdm import tqdm
 from datasets import load_dataset
 
 from models_step import Llama3, Qwen
-from prm import PRM, QwenPRM
+from prm import Qwen800, QwenPRM
 from utils import get_answer, check_is_correct
 
 NUM_SAMPLE = 6
 BEAM_SIZE = 4
+
+# Total generated tokens
+gen_token = 0
 
 # parse args
 parser = argparse.ArgumentParser()
@@ -28,8 +31,7 @@ elif args.llm == 'qwen':
 
 # PRM
 if args.prm == 'qwen800':
-    prm = PRM()
-    # prm = Qwen800()
+    prm = Qwen800()
 elif args.prm == 'qwenPRM':
     prm = QwenPRM()
 
@@ -50,6 +52,8 @@ def beam_search(now_steps: list, num_sample: int, beam_size=4):
             next_step, tokenized_next_step = llm.generate_one_step(now_steps[i])
             children.append(next_step)
             tokenized_children.append(tokenized_next_step)
+            global gen_token
+            gen_token += len(tokenized_next_step[0]) # トークン数集計
     # llm.release_memory()
 
     # Assign PRM score
@@ -88,21 +92,23 @@ def answer_question(index, messages):
         for i in range(len(next_steps)):
             if tokenized_next_steps[i]["step"][0][-1] == 128009: # <eot_id>
                 completed_steps.append(next_steps[i])
-            elif num_step >= 30: # If too long, treat as completed and stop later (じゃないとcompleted_stepsが空になってしまう)
+            elif num_step >= 20: # If too long, treat as completed and stop later (じゃないとcompleted_stepsが空になってしまう)
                 completed_steps.append(next_steps[i])
             else:
                 now_steps.append(next_steps[i]["step"])
-        # No more now_steps, then finish
-        if len(now_steps)==0:
-            break
         
-        if num_step >= 30: # If too long, stop generation
-            break
-
+        # debug
         print(f"Question index: {index}") # 現在の問題番号
         print(f"Now num_step: {num_step}") # 現在のステップ数
         print(f"len(completed_steps): {len(completed_steps)}") # 完成した回答の個数
         print(f"len(now_steps): {len(now_steps)}") # まだ生成中の回答の個数
+
+        # No more now_steps, then finish
+        if len(now_steps)==0:
+            break
+        
+        if num_step >= 20: # If too long, stop generation
+            break
     
     # Choose the best step among completed_steps
     final_answer = max(completed_steps, key=lambda x: x["score"])
@@ -153,3 +159,6 @@ if __name__ == '__main__':
         }
         with open(f"/data/yoshie/mtrths_labo/output_beam_{args.llm}_{args.prm}_{args.data}.jsonl", "a", encoding="utf-8") as f:
             f.write(json.dumps(result, ensure_ascii=False) + "\n")
+    
+    print(f"Total generated tokens(id:{args.start}~id:{args.end-1}): {gen_token}")
+    print(f"Average generated tokens(id:{args.start}~id:{args.end-1}): {gen_token}/({args.end}-{args.start}) = {gen_token/(args.end-args.start)}")
