@@ -96,9 +96,10 @@ def answer_question(index, messages):
                 completed_steps.append(next_steps[i])
             else:
                 now_steps.append(next_steps[i]["step"])
-        
+
         # debug
-        print(f"Question index: {index}") # 現在の問題番号
+        print(f"\nQuestion index: {index}") # 現在の問題番号
+        print("------------------------------")
         print(f"Now num_step: {num_step}") # 現在のステップ数
         print(f"len(completed_steps): {len(completed_steps)}") # 完成した回答の個数
         print(f"len(now_steps): {len(now_steps)}") # まだ生成中の回答の個数
@@ -127,7 +128,6 @@ if __name__ == '__main__':
 
     for i in tqdm(range(args.start, args.end)):
         # generate answer
-        print(f"Question index: {i}\n-----------------------")
         if args.data == 'gsm8k':
             prompt = data[i]["question"] # gsm8k
         elif args.data == 'mmlu':
@@ -159,6 +159,6 @@ if __name__ == '__main__':
         }
         with open(f"/data/yoshie/mtrths_labo/output_beam_{args.llm}_{args.prm}_{args.data}.jsonl", "a", encoding="utf-8") as f:
             f.write(json.dumps(result, ensure_ascii=False) + "\n")
-    
+        
     print(f"Total generated tokens(id:{args.start}~id:{args.end-1}): {gen_token}")
     print(f"Average generated tokens(id:{args.start}~id:{args.end-1}): {gen_token}/({args.end}-{args.start}) = {gen_token/(args.end-args.start)}")

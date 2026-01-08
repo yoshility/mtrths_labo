@@ -12,16 +12,16 @@
 
 # llm=llama prm=qwen800 data=mmlu method=pass8 Done
 
-# llm=llama prm=qwen800 data=mmlu method=bon
+# llm=llama prm=qwen800 data=mmlu method=bon Done
 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True uv run python best_of_n.py --llm llama --prm qwen800 --data mmlu --start 0 --end 100
 
-# llm=llama prm=qwen800 data=mmlu method=beam
+# llm=llama prm=qwen800 data=mmlu method=beam Done
 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True uv run python beam.py --llm llama --prm qwen800 --data mmlu --start 0 --end 100
 
-# llm=llama prm=qwenPRM data=gsm8k method=bon
+# llm=llama prm=qwenPRM data=gsm8k method=bon Done
 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True uv run python best_of_n.py --llm llama --prm qwenPRM --data gsm8k --start 0 --end 100
 
-# llm=llama prm=qwenPRM data=gsm8k method=beam
+# llm=llama prm=qwenPRM data=gsm8k method=beam 
 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True uv run python beam.py --llm llama --prm qwenPRM --data gsm8k --start 0 --end 100
 
 # llm=llama prm=qwenPRM data=mmlu method=bon

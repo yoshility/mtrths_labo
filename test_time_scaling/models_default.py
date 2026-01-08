@@ -38,7 +38,7 @@ class Llama3:
             gen_sequences = outputs.sequences[:, input_len:].cpu()
             decoded_text = self.tokenizer.decode(gen_sequences[0], skip_special_tokens=True)
             
-            return decoded_text
+            return decoded_text, len(outputs.sequences[0])
 
 class Qwen:
     def __init__(self):
@@ -81,4 +81,4 @@ class Qwen:
 
             del outputs
             
-            return decoded_text
+            return decoded_text, len(outputs.sequences[0])
