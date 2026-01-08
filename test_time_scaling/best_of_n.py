@@ -69,7 +69,7 @@ if __name__ == '__main__':
                 {"role": "user", "content": prompt},
                 {"role": "assistant", "content": answer}
             ]
-            llm.release_memory()
+            # llm.release_memory()
 
             # ground truth
             if args.data == 'gsm8k':
@@ -89,7 +89,7 @@ if __name__ == '__main__':
             #     prm = QwenPRM()
             scores = prm.prm(answer_chat_template, return_all=True)
             aggregated_score = scores[-1] # BoN_Last
-            prm.release_memory()
+            # prm.release_memory()
 
             # best of N
             if aggregated_score > max_aggregated_score:

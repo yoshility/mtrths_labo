@@ -15,9 +15,12 @@ client = OpenAI(
     api_key=FORGE_API_KEY,  
 )
 
-# LLM=Llama3.1-8B-Inst, PRM=Qwen2.5-Math-7B-PRM800K, Dataset=GSM8K
-input_file = "/data/yoshie/mtrths_labo/output_BoNLast_llama3_qwen800_gsm8k_allCandidates.jsonl"
-output_file = "/data/yoshie/mtrths_labo/pre_rpb_llama3_qwen800_gsm8k.csv"
+# file
+llm = 'llama' # [llama, qwen]
+prm = 'qwenPRM' # [qwen800, qwenPRM]
+dataset = 'gsm8k' # [gsm8k, mmlu]
+input_file = f"/data/yoshie/mtrths_labo/output_BoNLast_{llm}_{prm}_{dataset}.jsonl"
+output_file = f"/data/yoshie/mtrths_labo/pre_rpb_{llm}_{prm}_{dataset}.csv"
 
 # make output file
 if not os.path.exists(output_file):
@@ -26,7 +29,7 @@ if not os.path.exists(output_file):
         writer.writerow(['question_index', 'candidate_index', 'num_step', 'all_step', 'prm_score', 'label'])
 
 with open(input_file, 'r', encoding='utf-8') as f:
-    for line in tqdm(islice(f, 180, None)): # set end=None if all
+    for line in tqdm(islice(f, 0, None)): # set end=None if all # 1候補で1データなことに注意！
         # load model output data
         data = json.loads(line)
 

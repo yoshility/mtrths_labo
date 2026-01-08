@@ -2,10 +2,13 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-# LLM=Llama3.1-8B-Inst, PRM=Qwen2.5-Math-7B-PRM800K, Dataset=GSM8K
-input_file = "/data/yoshie/mtrths_labo/pre_rpb_llama3_qwen800_gsm8k.csv" # gptでラベル付けしたもの
-output_file = "/data/yoshie/mtrths_labo/rpb_llama3_qwen800_gsm8k.csv" # step_pct順に並べたもの
-output_fig = "/data/yoshie/mtrths_labo/rpb_llama3_qwen800_gsm8k.png" # step_pctごとにrpbをプロットしたもの
+# file
+llm = 'llama' # llama, qwen
+prm = 'qwen800' # qwen800, qwenPRM
+dataset = 'mmlu' # gsm8k, mmlu
+input_file = f"/data/yoshie/mtrths_labo/pre_rpb_{llm}_{prm}_{dataset}.csv" # gptでラベル付けしたもの
+output_file = f"/data/yoshie/mtrths_labo/rpb_{llm}_{prm}_{dataset}.csv" # step_pct順に並べたもの
+output_fig = f"/data/yoshie/mtrths_labo/rpb_{llm}_{prm}_{dataset}.png" # step_pctごとにrpbをプロットしたもの
 
 # Calculate point-biserial correlation
 '''
@@ -39,7 +42,7 @@ for i in range(10):
 print(f"\nstep_list: {step_list}")
 print(f"rpb_list: {rpb_list}")
 plt.plot(step_list, rpb_list, 'o-')
-plt.title('Point-biserial correlation (llama3_qwen800_gsm8k)')
+plt.title(f'Point-biserial correlation ({llm}_{prm}_{dataset})')
 plt.xlabel('step (%)')
 plt.ylabel('correlation')
 plt.xlim(0, 110)
