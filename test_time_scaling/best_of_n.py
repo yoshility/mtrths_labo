@@ -56,15 +56,20 @@ if __name__ == '__main__':
         for j in tqdm(range(NUM_SAMPLE)):
             # answer
             # llm = Llama3()
-            answer, len_output = llm.infer(prompt) # only new output, full output len
-            gen_token += len_output # トークン数集計
-            print(f"len_output: {len_output}")
+            # LLM
+            # if args.llm == 'llama':
+            #     llm = Llama3()
+            # elif args.llm == 'qwen':
+            #     llm = Qwen()
+            answer, len_output = llm.infer(prompt) # only new output
+            gen_token += len_output
+            print(f"- len_output: {len_output}")
             answer_chat_template = [
                 {"role": "system", "content": "You are a helpful assistant solving math problems. Solve the problem step by step. Separate the steps with '\\n\\n' to make it readable."},
                 {"role": "user", "content": prompt},
                 {"role": "assistant", "content": answer}
             ]
-            # llm.release_memory()
+            llm.release_memory()
 
             # ground truth
             if args.data == 'gsm8k':
@@ -78,9 +83,13 @@ if __name__ == '__main__':
 
             # aggregate prm scores -> last
             # prm = PRM()
+            # if args.prm == 'qwen800':
+            #     prm = Qwen800()
+            # elif args.prm == 'qwenPRM':
+            #     prm = QwenPRM()
             scores = prm.prm(answer_chat_template, return_all=True)
             aggregated_score = scores[-1] # BoN_Last
-            # prm.release_memory()
+            prm.release_memory()
 
             # best of N
             if aggregated_score > max_aggregated_score:
