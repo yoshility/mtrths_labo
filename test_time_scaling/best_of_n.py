@@ -4,10 +4,13 @@ from tqdm import tqdm
 from datasets import load_dataset
 
 from models_default import Llama3, Qwen
-from prm import PRM, QwenPRM
+from prm import Qwen800, QwenPRM
 from utils import get_answer, check_is_correct
 
 NUM_SAMPLE = 8
+
+# Total generated tokens
+gen_token = 0
 
 if __name__ == '__main__':
     # parse args
@@ -27,8 +30,7 @@ if __name__ == '__main__':
 
     # PRM
     if args.prm == 'qwen800':
-        prm = PRM()
-        # prm = Qwen800()
+        prm = Qwen800()
     elif args.prm == 'qwenPRM':
         prm = QwenPRM()
 
@@ -54,7 +56,9 @@ if __name__ == '__main__':
         for j in tqdm(range(NUM_SAMPLE)):
             # answer
             # llm = Llama3()
-            answer = llm.infer(prompt) # only new output
+            answer, len_output = llm.infer(prompt) # only new output, full output len
+            gen_token += len_output # トークン数集計
+            print(f"len_output: {len_output}")
             answer_chat_template = [
                 {"role": "system", "content": "You are a helpful assistant solving math problems. Solve the problem step by step. Separate the steps with '\\n\\n' to make it readable."},
                 {"role": "user", "content": prompt},
@@ -104,3 +108,5 @@ if __name__ == '__main__':
         with open(output_file, "a", encoding="utf-8") as f:
             for j in range(NUM_SAMPLE):
                 f.write(json.dumps(answer_candidates[j], ensure_ascii=False) + "\n")
+
+    print(f"Total generated tokens: {gen_token}")

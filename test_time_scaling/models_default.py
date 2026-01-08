@@ -17,7 +17,7 @@ class Llama3:
     def infer(self, prompt):
         with torch.no_grad():
             messages = [
-                {"role": "system", "content": "You are a helpful assistant solving math problems."},
+                {"role": "system", "content": "You are a helpful assistant solving math problems. Solve the problem step by step. Separate the steps with '\\n\\n' to make it readable."},
                 {"role": "user", "content": prompt}
             ]
             input_text = self.tokenizer.apply_chat_template(
@@ -38,7 +38,7 @@ class Llama3:
             gen_sequences = outputs.sequences[:, input_len:].cpu()
             decoded_text = self.tokenizer.decode(gen_sequences[0], skip_special_tokens=True)
             
-            return decoded_text
+            return decoded_text, len(outputs.sequences[0])
 
 class Qwen:
     def __init__(self):
@@ -55,7 +55,7 @@ class Qwen:
     def infer(self, prompt):
         with torch.no_grad():
             messages = [
-                {"role": "system", "content": "Please reason step by step, and put your final answer within \\boxed{}."},
+                {"role": "system", "content": "You are a helpful assistant solving math problems. Solve the problem step by step. Separate the steps with '\\n\\n' to make it readable."},
                 {"role": "user", "content": prompt}
             ]
             input_text = self.tokenizer.apply_chat_template(
@@ -81,4 +81,4 @@ class Qwen:
 
             del outputs
             
-            return decoded_text
+            return decoded_text, len(outputs.sequences[0])
