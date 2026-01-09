@@ -18,7 +18,7 @@ client = OpenAI(
 # file
 llm = 'llama' # [llama, qwen]
 prm = 'qwenPRM' # [qwen800, qwenPRM]
-dataset = 'gsm8k' # [gsm8k, mmlu]
+dataset = 'mmlu' # [gsm8k, mmlu]
 input_file = f"/data/yoshie/mtrths_labo/output_BoNLast_{llm}_{prm}_{dataset}.jsonl"
 output_file = f"/data/yoshie/mtrths_labo/pre_rpb_{llm}_{prm}_{dataset}.csv"
 

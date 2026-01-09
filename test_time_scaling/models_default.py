@@ -78,7 +78,5 @@ class Qwen:
             input_len = input_tokens.input_ids.shape[-1]
             gen_sequences = outputs.sequences[:, input_len:].cpu()
             decoded_text = self.tokenizer.decode(gen_sequences[0], skip_special_tokens=True)
-
-            del outputs
             
             return decoded_text, len(outputs.sequences[0])
