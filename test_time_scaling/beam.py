@@ -106,8 +106,7 @@ def answer_question(index, messages):
 
         # No more now_steps, then finish
         if len(now_steps)==0:
-            break
-        
+            break       
         if num_step >= 20: # If too long, stop generation
             break
     
@@ -159,6 +158,8 @@ if __name__ == '__main__':
         }
         with open(f"/data/yoshie/mtrths_labo/output_beam_{args.llm}_{args.prm}_{args.data}.jsonl", "a", encoding="utf-8") as f:
             f.write(json.dumps(result, ensure_ascii=False) + "\n")
+
+        print(f"Now gen_token: {gen_token}")
         
     print(f"Total generated tokens(id:{args.start}~id:{args.end-1}): {gen_token}")
     print(f"Average generated tokens(id:{args.start}~id:{args.end-1}): {gen_token}/({args.end}-{args.start}) = {gen_token/(args.end-args.start)}")
