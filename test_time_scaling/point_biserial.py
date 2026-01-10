@@ -2,28 +2,34 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-# LLM=Llama3.1-8B-Inst, PRM=Qwen2.5-Math-7B-PRM800K, Dataset=GSM8K
-input_file = "/data/yoshie/mtrths_labo/pre_rpb_llama3_qwen800_gsm8k.csv" # gptでラベル付けしたもの
-output_file = "/data/yoshie/mtrths_labo/rpb_llama3_qwen800_gsm8k.csv" # step_pct順に並べたもの
-output_fig = "/data/yoshie/mtrths_labo/rpb_llama3_qwen800_gsm8k.png" # step_pctごとにrpbをプロットしたもの
+# setting
+llm = 'llama' # llama, qwen
+prm = 'qwenPRM' # qwen800, qwenPRM
+dataset = 'mmlu' # gsm8k, mmlu
+num_step_range = 10 # default: 10 区間の数
+interval = 100 // num_step_range # 各区間の幅
+# file
+input_file = f"/data/yoshie/mtrths_labo/pre_rpb_{llm}_{prm}_{dataset}.csv" # gptでラベル付けしたもの
+output_file = f"/data/yoshie/mtrths_labo/rpb_{llm}_{prm}_{dataset}.csv" # step_pct順に並べたもの
+output_fig = f"/data/yoshie/mtrths_labo/rpb_{llm}_{prm}_{dataset}.png" # step_pctごとにrpbをプロットしたもの
 
 # Calculate point-biserial correlation
 '''
 r = (m1 - m0)\sqrt(n1*n0/n^2) / s_x
 '''
 df = pd.read_csv(input_file)
-step_list = np.arange(0, 100, 10) # graph's x-axis (percent)
+step_list = np.arange(0, 100, 100//num_step_range) # graph's x-axis (percent)
 df['step_pct'] = (df['num_step']-1) / (df['all_step']-1) * 100
 df_pct = df.sort_values('step_pct')
 df_pct.to_csv(output_file) # statistic data
-rpb_list = [None] * 10 # graph's y-axis
-for i in range(10):
-    if i == 9:
-        df_tmp = df[(i*10<=df['step_pct']) & (df['step_pct']<=(i+1)*10)]
-        print(f"\n{i*10}<=step_pct<={(i+1)*10} data size: {len(df_tmp)}")
+rpb_list = [None] * num_step_range # graph's y-axis
+for i in range(num_step_range):
+    if i == num_step_range-1: # final step range
+        df_tmp = df[(i*interval<=df['step_pct']) & (df['step_pct']<=(i+1)*interval)]
+        print(f"\n{i*interval}<=step_pct<={(i+1)*interval} data size: {len(df_tmp)}")
     else:
-        df_tmp = df[(i*10<=df['step_pct']) & (df['step_pct']<(i+1)*10)]
-        print(f"\n{i*10}<=step_pct<{(i+1)*10} data size: {len(df_tmp)}")
+        df_tmp = df[(i*interval<=df['step_pct']) & (df['step_pct']<(i+1)*interval)]
+        print(f"\n{i*interval}<=step_pct<{(i+1)*interval} data size: {len(df_tmp)}")
     m1 = np.mean(df_tmp[df_tmp['label']==1]['prm_score'])
     m0 = np.mean(df_tmp[df_tmp['label']==0]['prm_score'])
     n1 = len(df_tmp[df_tmp['label']==1])
@@ -39,7 +45,7 @@ for i in range(10):
 print(f"\nstep_list: {step_list}")
 print(f"rpb_list: {rpb_list}")
 plt.plot(step_list, rpb_list, 'o-')
-plt.title('Point-biserial correlation (llama3_qwen800_gsm8k)')
+plt.title(f'Point-biserial correlation ({llm}_{prm}_{dataset})')
 plt.xlabel('step (%)')
 plt.ylabel('correlation')
 plt.xlim(0, 110)
