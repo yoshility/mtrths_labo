@@ -77,10 +77,10 @@ def beam_search(now_steps: list, num_sample: int, beam_size=4):
     best_tokenized_children = sorted(tokenized_children, key=lambda x: x["score"], reverse=True)[:beam_size]
 
     # debug
-    # print("chosen children: --------------------------------------------------------------")
-    # for i in range(len(best_children)):
-    #     print(f"\nchosen children's score[{i}]:")
-    #     print(best_children[i]['score'])
+    print("chosen children: --------------------------------------------------------------")
+    for i in range(len(best_children)):
+        print(f"\nchosen children's score[{i}]:")
+        print(best_children[i]['score'])
     
     return best_children, best_tokenized_children
 
@@ -123,6 +123,8 @@ def answer_question(index, messages):
             break       
         if num_step >= 20: # If too long, stop generation
             break
+
+        # input('Press enter to go ahead >')
     
     # Choose the best step among completed_steps
     final_answer = max(completed_steps, key=lambda x: x["score"])
@@ -170,8 +172,9 @@ if __name__ == '__main__':
             "answer": _gt,
             "is_correct": is_correct
         }
-        with open(f"/data/yoshie/mtrths_labo/output_beam_{args.llm}_{args.prm}_{args.data}.jsonl", "a", encoding="utf-8") as f:
-            f.write(json.dumps(result, ensure_ascii=False) + "\n")
+        print(result)
+        # with open(f"/data/yoshie/mtrths_labo/output_beam_{args.llm}_{args.prm}_{args.data}.jsonl", "a", encoding="utf-8") as f:
+        #     f.write(json.dumps(result, ensure_ascii=False) + "\n")
 
         print(f"Now gen_token: {gen_token}")
         
