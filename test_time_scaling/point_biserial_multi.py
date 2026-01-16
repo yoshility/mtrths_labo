@@ -1,19 +1,25 @@
+import argparse
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
+# parse args
+parser = argparse.ArgumentParser()
+parser.add_argument('--llm') # ['llama', 'qwen']
+parser.add_argument('--prm') # ['qwen800', 'qwenPRM']
+parser.add_argument('--data') # ['gsm8k', 'mmlu']
+args = parser.parse_args()
+
 # setting
-llm = 'llama' # llama, qwen
-prm = 'qwen800' # qwen800, qwenPRM
 dataset1 = 'gsm8k'
-dataset2 = 'mmlu' 
+dataset2 = 'mmlu'
 num_step_range = 10 # default: 10 区間の数
 interval = 100 // num_step_range # 各区間の幅
 # file
-input_file1 = f"/data/yoshie/mtrths_labo/pre_rpb_{llm}_{prm}_{dataset1}.csv" # gptでラベル付けしたもの
-input_file2 = f"/data/yoshie/mtrths_labo/pre_rpb_{llm}_{prm}_{dataset2}.csv" # gptでラベル付けしたもの
-output_file = f"/data/yoshie/mtrths_labo/rpb_{llm}_{prm}_{dataset1}_{dataset2}.csv" # step_pct順に並べたもの
-output_fig = f"/data/yoshie/mtrths_labo/rpb_{llm}_{prm}_{dataset1}_{dataset2}.png" # step_pctごとにrpbをプロットしたもの
+input_file1 = f"/data/yoshie/mtrths_labo/pre_rpb_{args.llm}_{args.prm}_{dataset1}_ver2.csv" # gptでラベル付けしたもの
+input_file2 = f"/data/yoshie/mtrths_labo/pre_rpb_{args.llm}_{args.prm}_{dataset2}_ver2.csv" # gptでラベル付けしたもの
+output_file = f"/data/yoshie/mtrths_labo/rpb_{args.llm}_{args.prm}_{dataset1}_{dataset2}_ver2.csv" # step_pct順に並べたもの
+output_fig = f"/data/yoshie/mtrths_labo/rpb_{args.llm}_{args.prm}_{dataset1}_{dataset2}_ver2.png" # step_pctごとにrpbをプロットしたもの
 
 # Calculate point-biserial correlation
 '''
@@ -39,8 +45,8 @@ for i in range(num_step_range):
         df_tmp_all = df_all[(i*interval<=df_all['step_pct']) & (df_all['step_pct']<=(i+1)*interval)]
         print(f"\n{i*interval}<=step_pct<={(i+1)*interval} all data size: {len(df_tmp_all)}")
     else:
-        df_tmp1 = df1[(i*interval<=df1['step_pct']) & (df1['step_pct']<=(i+1)*interval)]
-        df_tmp2 = df2[(i*interval<=df2['step_pct']) & (df2['step_pct']<=(i+1)*interval)]
+        df_tmp1 = df1[(i*interval<=df1['step_pct']) & (df1['step_pct']<(i+1)*interval)]
+        df_tmp2 = df2[(i*interval<=df2['step_pct']) & (df2['step_pct']<(i+1)*interval)]
         df_tmp_all = df_all[(i*interval<=df_all['step_pct']) & (df_all['step_pct']<(i+1)*interval)]
         print(f"\n{i*interval}<=step_pct<{(i+1)*interval} all data size: {len(df_tmp_all)}")
     
@@ -78,13 +84,13 @@ for i in range(num_step_range):
 # Plot point-biserial correlation with num_step
 print(f"\nstep_list: {step_list}")
 print(f"rpb_list: {rpb_list_all}")
-plt.plot(step_list, rpb_list1, label='GSM8K', color='blue') # gsm8k
-plt.plot(step_list, rpb_list2, label='MMLU_STEM', color='red') # mmlu
-plt.plot(step_list, rpb_list_all, label='All data', color='green') # all
-plt.title(f'Point-biserial correlation ({llm}_{prm}.png)')
+plt.plot(step_list, rpb_list1, label='GSM8K', color='blue', marker='o') # gsm8k
+plt.plot(step_list, rpb_list2, label='MMLU', color='red', marker='o') # mmlu
+plt.plot(step_list, rpb_list_all, label='All data', color='green', marker='o') # all
+plt.title(f'Point-biserial correlation ({args.llm}_{args.prm})')
 plt.xlabel('step (%)')
 plt.ylabel('correlation')
 plt.xlim(-10, 100)
-plt.ylim(0, 1)
+plt.ylim(-0.1, 1)
 plt.legend()
 plt.savefig(output_fig)

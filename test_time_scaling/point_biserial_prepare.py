@@ -1,6 +1,7 @@
 import os
 import csv
 import json
+import argparse
 from tqdm import tqdm
 from itertools import islice
 from dotenv import load_dotenv
@@ -15,12 +16,16 @@ client = OpenAI(
     api_key=FORGE_API_KEY,  
 )
 
+# parse args
+parser = argparse.ArgumentParser()
+parser.add_argument('--llm') # ['llama', 'qwen']
+parser.add_argument('--prm') # ['qwen800', 'qwenPRM']
+parser.add_argument('--data') # ['gsm8k', 'mmlu']
+args = parser.parse_args()
+
 # file
-llm = 'llama' # [llama, qwen]
-prm = 'qwenPRM' # [qwen800, qwenPRM]
-dataset = 'mmlu' # [gsm8k, mmlu]
-input_file = f"/data/yoshie/mtrths_labo/output_BoNLast_{llm}_{prm}_{dataset}.jsonl"
-output_file = f"/data/yoshie/mtrths_labo/pre_rpb_{llm}_{prm}_{dataset}.csv"
+input_file = f"/data/yoshie/mtrths_labo/output_BoNLast_{args.llm}_{args.prm}_{args.data}.jsonl"
+output_file = f"/data/yoshie/mtrths_labo/pre_rpb_{args.llm}_{args.prm}_{args.data}_ver2.csv"
 
 # make output file
 if not os.path.exists(output_file):
@@ -29,17 +34,17 @@ if not os.path.exists(output_file):
         writer.writerow(['question_index', 'candidate_index', 'num_step', 'all_step', 'prm_score', 'label'])
 
 with open(input_file, 'r', encoding='utf-8') as f:
-    for line in tqdm(islice(f, 0, None)): # set end=None if all # 1候補で1データなことに注意！
+    for line in tqdm(islice(f, 143, None)): # set end=None if all # 1候補で1データなことに注意！
         # load model output data
         data = json.loads(line)
 
         # make prompt content
         splited_answer = data['pred'].split('\n\n')
-        content = f"# Instruction\nHere is a pair of question and answer. Please check whether each step in the answer is correct. If the step is correct for the question, output 1, if it is misleading or unuseful for the question, output 0. Finally, please only output a string of 0 and 1 with space separated. For example, when the step correctness of an answer is [correct, correct, wrong], then output 1 1 0. Don't output any quotation marks or periods. Make sure the length of your output is equal to the number of the steps: {len(splited_answer)}!!! You don't have to care about the step numbers which are not written as \"Step:~\".\n\n"
+        content = f"# Instruction\nHere is a pair of question and answer. Please check whether each step in the answer is correct. If the step is correct for the question, output 1, if it is misleading or wrong for the question, output 0. If the step is not correct for the question but is logically true, output 1. Finally, please only output a string of 0 and 1 with space separated. For example, when the step correctness of an answer is [correct, correct, wrong, correct, wrong], then output 1 1 0 1 0. Don't output any quotation marks or periods. Make sure the length of your output is equal to the number of the steps: {len(splited_answer)}!!! You don't have to care about the step numbers which are not written as \"[Step:~]\".\n\n"
         content += f"# Question\n{data['question']}\n\n"
         processed_answer = '# Answer\n'
         for i in range(len(splited_answer)):
-            processed_answer += f"Step{i+1}: {splited_answer[i]}\n\n"
+            processed_answer += f"[Step{i+1}]: {splited_answer[i]}\n\n"
         content += processed_answer
 
         # ask gpt to get labels
@@ -53,6 +58,10 @@ with open(input_file, 'r', encoding='utf-8') as f:
         labels = completion.choices[0].message.content
         labels = [int(l) for l in labels.rstrip('.').split()]
         if len(data['scores']) != len(labels):
+            # データ捨てる
+            print(f"[Discard] len(data['scores'])!=len(labels) | index: {data['index']} | candidate: {data['candidate']}")
+            continue
+
             labels = [1] * len(data['scores']) # 一旦ごまかす
             print(f"[Warning] len(data['scores'])!=len(labels) | index: {data['index']} | candidate: {data['candidate']}")
 
