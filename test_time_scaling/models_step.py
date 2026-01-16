@@ -129,8 +129,8 @@ class Qwen:
         # stepはsystem,user(,assistant)を含む辞書のリスト
         # これに対してダブル改行が出るまで続きを生成する
 
-        # If system & user, add <|eot_id|><|start_header_id|>assistant<|end_header_id|>.
-        # If system & user & assistant, add <|eot_id|> only. (But change it to ' \n\n' later.)
+        # If system & user, add <|im_end|>\n<|im_start|>assistant\n
+        # If system & user & assistant, add <|im_end|>\n only. (But delete them later.)
         input_text = self.tokenizer.apply_chat_template(
             step,
             tokenize=False,
@@ -140,10 +140,10 @@ class Qwen:
         input_tokens = self.tokenizer(input_text, return_tensors="pt").to(self.model.device)
         generated_ids = input_tokens["input_ids"]
         # print(f"\ninput_ids(before):\n{generated_ids}\n")
-        # If the last token is '<|eot_id|>'(128009), change it to ' \n\n'(4815)
-        if generated_ids[0, -1].item() == self.tokenizer.eos_token_id:
-            generated_ids = generated_ids[:, :-1]
-            generated_ids = torch.cat([generated_ids, torch.tensor([[4815]], device='cuda:0')], dim=-1)
+        # If the last tokens are '<|im_end|>'(151645) + '\n'(198), delete them
+        if generated_ids[0, -2].item() == self.tokenizer.eos_token_id: # == <|im_end|>(151645)
+            generated_ids = generated_ids[:, :-2] # なにもつけない
+            # generated_ids = torch.cat([generated_ids, torch.tensor([[4815]], device='cuda:0')], dim=-1)
         # print(f"\ninput_ids(after):\n{generated_ids}\n")
 
         past_key_values = DynamicCache()
@@ -159,14 +159,14 @@ class Qwen:
                     past_key_values=past_key_values,
                     use_cache=True
                 )
-                temperature = 0.8
+                temperature = 1.0 # もともとは0.8
             
                 logits = outputs.logits
                 past_key_values = outputs.past_key_values
                 
                 # choose the next token
                 adjusted_logits = logits[:, -1, :] / temperature
-                topk_logits = self.top_k_logits(adjusted_logits, k=20)
+                topk_logits = self.top_k_logits(adjusted_logits, k=5) # もともとはk=20
                 probs = torch.softmax(topk_logits, dim=-1)
                 next_token_id = torch.multinomial(probs, num_samples=1) # random sampling based on probs
                 

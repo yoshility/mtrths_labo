@@ -26,8 +26,10 @@ args = parser.parse_args()
 # LLM
 if args.llm == 'llama':
     llm = Llama3()
+    eot_id = 128009 # <|eot_id|>==eos_token_id
 elif args.llm == 'qwen':
     llm = Qwen()
+    eot_id = 151645 # <|im_end|>==eos_token_id
 
 # PRM
 if args.prm == 'qwen800':
@@ -64,9 +66,21 @@ def beam_search(now_steps: list, num_sample: int, beam_size=4):
         tokenized_children[i] = {"step": tokenized_children[i], "score": score}
     # prm.release_memory()
 
+    # debug
+    # for i in range(len(children)):
+    #     print(f"\nchildren[{i}]: ----------------------------------------------------------")
+    #     print(children[i]['step'])
+    #     print(f"score[{i}]: {children[i]['score']}")
+
     # Find the best <beam_size> children
     best_children = sorted(children, key=lambda x: x["score"], reverse=True)[:beam_size]
     best_tokenized_children = sorted(tokenized_children, key=lambda x: x["score"], reverse=True)[:beam_size]
+
+    # debug
+    # print("chosen children: --------------------------------------------------------------")
+    # for i in range(len(best_children)):
+    #     print(f"\nchosen children's score[{i}]:")
+    #     print(best_children[i]['score'])
     
     return best_children, best_tokenized_children
 
@@ -90,7 +104,7 @@ def answer_question(index, messages):
         # Only put the unfinished steps into now_steps list
         now_steps = []
         for i in range(len(next_steps)):
-            if tokenized_next_steps[i]["step"][0][-1] == 128009: # <eot_id>
+            if tokenized_next_steps[i]["step"][0][-1] == eot_id: # <eot_id>
                 completed_steps.append(next_steps[i])
             elif num_step >= 20: # If too long, treat as completed and stop later (じゃないとcompleted_stepsが空になってしまう)
                 completed_steps.append(next_steps[i])
@@ -106,8 +120,7 @@ def answer_question(index, messages):
 
         # No more now_steps, then finish
         if len(now_steps)==0:
-            break
-        
+            break       
         if num_step >= 20: # If too long, stop generation
             break
     
@@ -159,6 +172,8 @@ if __name__ == '__main__':
         }
         with open(f"/data/yoshie/mtrths_labo/output_beam_{args.llm}_{args.prm}_{args.data}.jsonl", "a", encoding="utf-8") as f:
             f.write(json.dumps(result, ensure_ascii=False) + "\n")
+
+        print(f"Now gen_token: {gen_token}")
         
     print(f"Total generated tokens(id:{args.start}~id:{args.end-1}): {gen_token}")
     print(f"Average generated tokens(id:{args.start}~id:{args.end-1}): {gen_token}/({args.end}-{args.start}) = {gen_token/(args.end-args.start)}")
