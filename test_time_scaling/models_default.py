@@ -66,10 +66,10 @@ class Qwen:
             input_tokens = self.tokenizer(input_text, return_tensors="pt").to("cuda")
             outputs = self.model.generate(
                 **input_tokens, # set attention_mask by this
-                do_sample=True,
+                # do_sample=True,
                 # temperature=0.8, # random even if no temp
-                top_p=0.9,
-                top_k=5, # ここ細かく調節しないとすぐハルシネーションする
+                # top_p=0.9,
+                # top_k=5, # ここ細かく調節しないとすぐハルシネーションする
                 max_new_tokens=1024,
                 output_scores=True,
                 return_dict_in_generate=True,
